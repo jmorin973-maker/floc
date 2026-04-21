@@ -1,0 +1,22 @@
+
+[functions.send-daily-digest]
+enabled = true
+verify_jwt = true
+import_map = "./functions/send-daily-digest/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/send-daily-digest/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/send-daily-digest/*.html" ]
+
+[functions.send-comment-notification]
+enabled = true
+verify_jwt = true
+import_map = "./functions/send-comment-notification/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/send-comment-notification/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/send-comment-notification/*.html" ]

@@ -1,0 +1,49 @@
+export default {
+  expo: {
+    owner: "julienmorin",
+    name: "Floc",
+    slug: "floc",
+    version: "0.1.0",
+    orientation: "portrait",
+    icon: "./assets/icon.png",
+    userInterfaceStyle: "light",
+    splash: {
+      image: "./assets/splash.png",
+      resizeMode: "contain",
+      backgroundColor: "#1A0F0A"
+    },
+    plugins: [
+      ...
+      'expo-splash-screen',
+    ],
+    ios: {
+      supportsTablet: false,
+      bundleIdentifier: "com.julienmorin.floc",
+      buildNumber: "5",
+      infoPlist: {
+        NSLocationWhenInUseUsageDescription: "Floc uses your location to show nearby runs on the map."
+      }
+    },
+    android: {
+      package: "com.julienmorin.floc"
+    },
+    plugins: [
+      "expo-secure-store",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#C4562A",
+          "sounds": []
+        }
+      ]
+    ],
+    extra: {
+      googlePlacesApiKey: process.env.GOOGLE_PLACES_API_KEY,
+      eas: {
+        projectId: "339f3fa2-eb0b-4198-8328-0e6d6caf6825"
+      }
+    }
+  }
+}
