@@ -630,8 +630,9 @@ export default function DiscoverScreen({
         </TouchableOpacity>
       </View>
 
-      {viewMode === 'list' ? (
-        runs.length === 0 ? (
+      {/* List view (shown when viewMode === 'list') */}
+      <View style={{ flex: 1, display: viewMode === 'list' ? 'flex' : 'none' }}>
+        {runs.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No runs found</Text>
             <Text style={styles.emptySubtext}>
@@ -648,30 +649,26 @@ export default function DiscoverScreen({
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           />
-        )
+        )}
+      </View>
 
-     ) : (
-        <View style={{ flex: 1 }}>
-          {loadingLocation ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#C4562A" />
-              <Text style={{ marginTop: 12, color: '#666' }}>Getting your location...</Text>
-            </View>
-          ) : userLocation ? (
+      {/* Map view — always mounted once location is ready, just hidden
+          when viewMode === 'list'. Keeping the MapView mounted avoids the
+          iOS Apple Maps first-launch gesture freeze. */}
+      <View style={{ flex: 1, display: viewMode === 'map' ? 'flex' : 'none' }}>
+        {loadingLocation || !userLocation ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#C4562A" />
+            <Text style={{ marginTop: 12, color: '#666' }}>Getting your location...</Text>
+          </View>
+        ) : (
+          <View style={{ flex: 1 }}>
             <MapView
               ref={mapRef}
               style={styles.map}
               initialRegion={initialRegion}
               showsUserLocation={true}
               showsMyLocationButton={true}
-              onMapReady={() => {
-                // Nudge the map once it's ready. Works around an iOS
-                // react-native-maps bug where gestures are blocked on
-                // first launch until the region is updated.
-                if (mapRef.current) {
-                  mapRef.current.animateToRegion(initialRegion, 150)
-                }
-              }}
             >
               {validRunsForMap.map((run) => (
                 <Marker
@@ -682,32 +679,27 @@ export default function DiscoverScreen({
                     setShowRunDetails(true)
                   }}
                 >
-                <View style={[styles.pin, { backgroundColor: getMarkerColor(run.type) }]}>
-                  <Text style={styles.pinText}>{getRunInitial(run.type)}</Text>
-                  <View style={[styles.pinTail, { borderTopColor: getMarkerColor(run.type) }]} />
-                </View>
-              </Marker>
+                  <View style={[styles.pin, { backgroundColor: getMarkerColor(run.type) }]}>
+                    <Text style={styles.pinText}>{getRunInitial(run.type)}</Text>
+                    <View style={[styles.pinTail, { borderTopColor: getMarkerColor(run.type) }]} />
+                  </View>
+                </Marker>
               ))}
             </MapView>
-          ) : (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#C4562A" />
-              <Text style={{ marginTop: 12, color: '#666' }}>Getting your location...</Text>
-            </View>
-          )}
 
-          {validRunsForMap.length === 0 && initialRegion && (
-            <View style={styles.emptyOverlay}>
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyText}>No runs found</Text>
-                <Text style={styles.emptySubtext}>
-                  {activeFilterCount > 0 ? 'Try adjusting your filters' : 'No runs posted yet'}
-                </Text>
+            {validRunsForMap.length === 0 && initialRegion && (
+              <View style={styles.emptyOverlay}>
+                <View style={styles.emptyCard}>
+                  <Text style={styles.emptyText}>No runs found</Text>
+                  <Text style={styles.emptySubtext}>
+                    {activeFilterCount > 0 ? 'Try adjusting your filters' : 'No runs posted yet'}
+                  </Text>
+                </View>
               </View>
-            </View>
-          )}
-        </View>
-      )}
+            )}
+          </View>
+        )}
+      </View>
 
       <FilterModal
         visible={showFilters}

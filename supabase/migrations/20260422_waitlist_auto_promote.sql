@@ -33,7 +33,7 @@ begin
   select rp.id into v_next_id
   from public.run_participants rp
   where rp.run_id = p_run_id and rp.status = 'waitlist'
-  order by rp.waitlist_position asc nulls last, rp.created_at asc
+  order by rp.waitlist_position asc nulls last, rp.joined_at asc
   limit 1;
 
   if v_next_id is null then
@@ -48,7 +48,7 @@ begin
   with ranked as (
     select rp.id,
            row_number() over (order by rp.waitlist_position asc nulls last,
-                                       rp.created_at asc) as rn
+                                       rp.joined_at asc) as rn
     from public.run_participants rp
     where rp.run_id = p_run_id and rp.status = 'waitlist'
   )

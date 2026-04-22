@@ -202,7 +202,11 @@ export default function MyRunsScreen({ onProfilePress, userProfile }) {
               if (error) throw error
               await loadRuns()
             } catch (error) {
-              Alert.alert('Error', 'Could not leave run')
+              console.error('Leave run error:', error)
+              Alert.alert(
+                'Error',
+                `Could not leave run: ${error?.message || error?.code || 'unknown'}`
+              )
             }
           },
         },

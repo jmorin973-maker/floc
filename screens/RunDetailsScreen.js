@@ -326,7 +326,11 @@ export default function RunDetailsScreen({ visible, onClose, runId, userId, onRu
                 await loadRunDetails()
               }
             } catch (error) {
-              Alert.alert('Error', 'Could not leave run')
+              console.error('Leave run error:', error)
+              Alert.alert(
+                'Error',
+                `Could not leave run: ${error?.message || error?.code || 'unknown'}`
+              )
             }
           },
         },
