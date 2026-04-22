@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import MapView, { Marker, PROVIDER_APPLE } from 'react-native-maps'
+import MapView, { Marker } from 'react-native-maps'
 import * as Location from 'expo-location'
 import { supabase } from '../lib/supabase'
 import FilterModal from './FilterModal'
@@ -660,11 +660,18 @@ export default function DiscoverScreen({
           ) : userLocation ? (
             <MapView
               ref={mapRef}
-              provider={PROVIDER_APPLE}
               style={styles.map}
               initialRegion={initialRegion}
               showsUserLocation={true}
               showsMyLocationButton={true}
+              onMapReady={() => {
+                // Nudge the map once it's ready. Works around an iOS
+                // react-native-maps bug where gestures are blocked on
+                // first launch until the region is updated.
+                if (mapRef.current) {
+                  mapRef.current.animateToRegion(initialRegion, 150)
+                }
+              }}
             >
               {validRunsForMap.map((run) => (
                 <Marker
