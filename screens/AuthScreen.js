@@ -1,116 +1,157 @@
+// v4 auth screen: Sign In / Sign Up in one flow, toggleable.
+// Design matches SignInV4 + SignUpV4 in the handoff.
+
 import { useState } from 'react'
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert, KeyboardAvoidingView, Platform, Pressable,
+  SafeAreaView, ScrollView, StyleSheet, Text, View,
 } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import { supabase } from '../lib/supabase'
+import { colors, fonts, space, radii, type } from '../lib/theme'
+import InputField from '../components/ui/InputField'
+import Button from '../components/ui/Button'
+import MicroLabel from '../components/ui/MicroLabel'
 
 export default function AuthScreen() {
+  const [mode, setMode] = useState('signin') // 'signin' | 'signup'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
-  const [isSignUp, setIsSignUp] = useState(false)
+  const [error, setError] = useState({})
 
-  async function signInWithEmail() {
-    setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password: password,
-    })
+  const isSignUp = mode === 'signup'
 
-    if (error) Alert.alert('Error', error.message)
-    setLoading(false)
+  function validate() {
+    const e = {}
+    if (isSignUp && name.trim().length < 2) e.name = 'Name must be at least 2 characters.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email = 'Enter a valid email.'
+    if (password.length < 8) e.password = 'At least 8 characters.'
+    else if (isSignUp && !(/[A-Za-z]/.test(password) && /[0-9]/.test(password))) e.password = 'Include a letter and a number.'
+    setError(e)
+    return Object.keys(e).length === 0
   }
 
-  async function signUpWithEmail() {
-    if (!name.trim()) {
-      Alert.alert('Error', 'Please enter your name')
-      return
-    }
-
+  async function submit() {
+    if (!validate()) return
     setLoading(true)
-    const { error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password: password,
-      options: {
-        data: {
-          full_name: name.trim(),
-        }
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { full_name: name.trim() } },
+        })
+        if (error) throw error
+        Alert.alert('Check your inbox', 'We sent you a confirmation link.')
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        })
+        if (error) throw error
       }
-    })
-
-    if (error) {
-      Alert.alert('Error', error.message)
-    } else {
-      Alert.alert('Success', 'Account created! You can now log in.')
-      setIsSignUp(false)
+    } catch (err) {
+      Alert.alert('Error', err?.message || 'Something went wrong.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+    <SafeAreaView style={styles.screen}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}
       >
-        <View style={styles.content}>
-          <Text style={styles.logo}>Floc</Text>
-          <Text style={styles.tagline}>Find your pack</Text>
+        <View style={styles.topBar}>
+          <View style={styles.closeBox}>
+            <Ionicons name="close" size={16} color={colors.ink} />
+          </View>
+          <MicroLabel color={colors.smoke}>{isSignUp ? 'Create Account' : 'Sign In'}</MicroLabel>
+          <View style={{ width: 34 }} />
+        </View>
 
-          {isSignUp && (
-            <TextInput
-              style={styles.input}
-              onChangeText={setName}
-              value={name}
-              placeholder="Full Name"
-              autoCapitalize="words"
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.hero}>
+            <View style={styles.heroMicro}>
+              <View style={styles.heroDot} />
+              <Text style={styles.heroMicroText}>
+                {isSignUp ? 'NEW HERE' : 'WELCOME BACK'}
+              </Text>
+            </View>
+            {isSignUp ? (
+              <Text style={styles.heroTitle}>
+                Join the{'\n'}<Text style={styles.heroAccent}>flock.</Text>
+              </Text>
+            ) : (
+              <Text style={styles.heroTitle}>
+                Lace{'\n'}<Text style={styles.heroAccent}>up.</Text>
+              </Text>
+            )}
+            {isSignUp ? (
+              <Text style={styles.heroSub}>
+                We'll need a name and email. That's it. No profile pic, no bio.
+              </Text>
+            ) : null}
+          </View>
+
+          <View style={styles.fields}>
+            {isSignUp ? (
+              <InputField
+                label="NAME"
+                value={name}
+                onChangeText={(v) => { setName(v); setError((e) => ({ ...e, name: undefined })) }}
+                placeholder="Julien M."
+                autoCapitalize="words"
+                error={error.name}
+              />
+            ) : null}
+            <InputField
+              label="EMAIL"
+              value={email}
+              onChangeText={(v) => { setEmail(v); setError((e) => ({ ...e, email: undefined })) }}
+              placeholder="you@floc.run"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              error={error.email}
+              style={styles.field}
             />
-          )}
+            <InputField
+              label="PASSWORD"
+              value={password}
+              onChangeText={(v) => { setPassword(v); setError((e) => ({ ...e, password: undefined })) }}
+              placeholder="••••••••••"
+              secureTextEntry
+              error={error.password}
+              style={styles.field}
+              rightSlot={!isSignUp ? (
+                <Pressable onPress={() => Alert.alert('Forgot password', 'Password reset coming soon.')}>
+                  <Text style={styles.forgot}>FORGOT?</Text>
+                </Pressable>
+              ) : null}
+            />
+          </View>
+        </ScrollView>
 
-          <TextInput
-            style={styles.input}
-            onChangeText={setEmail}
-            value={email}
-            placeholder="Email"
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-
-          <TextInput
-            style={styles.input}
-            onChangeText={setPassword}
-            value={password}
-            placeholder="Password"
-            secureTextEntry
-          />
-
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            disabled={loading}
-            onPress={isSignUp ? signUpWithEmail : signInWithEmail}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Log In'}
+        <View style={styles.footer}>
+          <Button onPress={submit} loading={loading} iconRight={<Ionicons name="arrow-forward" size={14} color={colors.cream} />}>
+            {isSignUp ? 'Create Account' : 'Sign In'}
+          </Button>
+          <Pressable onPress={() => { setMode(isSignUp ? 'signin' : 'signup'); setError({}) }} style={styles.toggle}>
+            <Text style={styles.toggleText}>
+              {isSignUp ? 'Already have an account? ' : 'New to Floc? '}
+              <Text style={styles.toggleTextBold}>
+                {isSignUp ? 'Sign in' : 'Create account'}
+              </Text>
             </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setIsSignUp(!isSignUp)}
-            disabled={loading}
-          >
-            <Text style={styles.switchText}>
-              {isSignUp ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
-            </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -118,59 +159,50 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
+  screen: { flex: 1, backgroundColor: colors.cream },
+  flex: { flex: 1 },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: space.lg,
+    paddingTop: space.xs,
+    paddingBottom: space.md,
   },
-  keyboardView: {
-    flex: 1,
+  closeBox: {
+    width: 34, height: 34,
+    borderRadius: radii.chip,
+    borderWidth: 1, borderColor: colors.lineStrong,
+    alignItems: 'center', justifyContent: 'center',
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 32,
+  scroll: { paddingHorizontal: space.xl, paddingBottom: 180 },
+  hero: { paddingTop: space.lg, paddingBottom: space.xl },
+  heroMicro: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
+  heroDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.clay },
+  heroMicroText: {
+    fontFamily: fonts.displayBold,
+    fontSize: 10, letterSpacing: 1.8, color: colors.clay,
   },
-  logo: {
-    fontSize: 48,
-    fontWeight: '900',
-    textAlign: 'center',
-    marginBottom: 8,
-    letterSpacing: -2,
+  heroTitle: {
+    fontFamily: fonts.displayBold,
+    fontSize: 42, lineHeight: 42 * 0.9,
+    letterSpacing: -2, color: colors.ink,
+    textTransform: 'uppercase',
   },
-  tagline: {
-    fontSize: 16,
-    color: '#888',
-    textAlign: 'center',
-    marginBottom: 48,
+  heroAccent: { color: colors.clay },
+  heroSub: { ...type.body, color: colors.smoke, marginTop: space.sm, maxWidth: 340 },
+  fields: { gap: space.md },
+  field: { marginTop: space.md },
+  forgot: {
+    fontFamily: fonts.displayBold,
+    fontSize: 10, letterSpacing: 1.6, color: colors.clay,
+    paddingHorizontal: 4,
   },
-  input: {
-    backgroundColor: 'white',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
+  footer: {
+    position: 'absolute',
+    left: space.xl, right: space.xl, bottom: space.xl,
   },
-  button: {
-    backgroundColor: '#0F0F0F',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 12,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  switchText: {
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 24,
-    fontSize: 14,
-  },
+  toggle: { marginTop: space.md, alignItems: 'center' },
+  toggleText: { fontFamily: fonts.body, fontSize: 13, color: colors.smoke },
+  toggleTextBold: { fontFamily: fonts.bodySemibold, color: colors.ink },
 })
