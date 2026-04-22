@@ -113,7 +113,7 @@ export default function MyRunsScreen({ onProfilePress, userProfile }) {
             .select(`
               *,
               creator:profiles!runs_creator_id_fkey(full_name, avatar_url),
-              participants:run_participants(user_id)
+              participants:run_participants(user_id, status, waitlist_position)
             `)
             .in('id', runIds)
             .order('date', { ascending: true })

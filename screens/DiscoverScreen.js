@@ -662,10 +662,9 @@ export default function DiscoverScreen({
               ref={mapRef}
               provider={PROVIDER_APPLE}
               style={styles.map}
-              region={initialRegion}
+              initialRegion={initialRegion}
               showsUserLocation={true}
               showsMyLocationButton={true}
-              onRegionChangeComplete={() => {}}
             >
               {validRunsForMap.map((run) => (
                 <Marker

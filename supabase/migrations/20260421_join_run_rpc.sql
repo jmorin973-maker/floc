@@ -32,8 +32,8 @@ begin
   end if;
 
   select count(*) into v_confirmed_count
-  from public.run_participants
-  where run_id = p_run_id and status = 'confirmed';
+  from public.run_participants rp
+  where rp.run_id = p_run_id and rp.status = 'confirmed';
 
   if v_confirmed_count < v_spots then
     v_status := 'confirmed';
