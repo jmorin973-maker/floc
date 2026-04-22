@@ -15,6 +15,8 @@ import CreateRunModal from './screens/CreateRunModal'
 import ProfileScreen from './screens/ProfileScreen'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import OnboardingScreen from './screens/OnboardingScreen'
+import { useFonts, SpaceGrotesk_500Medium, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk'
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter'
 
 const navigationRef = createNavigationContainerRef()
 const Tab = createBottomTabNavigator()
@@ -31,6 +33,14 @@ export default function App() {
   const [shouldOpenFromNotification, setShouldOpenFromNotification] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
   const [showOnboarding, setShowOnboarding] = useState(false)
+
+  const [fontsLoaded] = useFonts({
+    SpaceGrotesk_500Medium,
+    SpaceGrotesk_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+  })
 
   const notificationListener = useRef()
   const responseListener = useRef()
@@ -154,7 +164,7 @@ export default function App() {
     }, 100)
   }
 
-  if (showSplash) {
+  if (showSplash || !fontsLoaded) {
     return <SplashAnimationScreen onFinished={() => setShowSplash(false)} />
   }
 
