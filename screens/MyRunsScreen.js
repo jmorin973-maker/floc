@@ -399,7 +399,7 @@ export default function MyRunsScreen({ onProfilePress, userProfile }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerTitle}>Floc</Text>
+            <Image source={require('../assets/floc-logo-transparent.png')} style={styles.headerLogo} />
           </View>
           <TouchableOpacity onPress={onProfilePress}>
             <Ionicons name="person-circle-outline" size={32} color="#666" />
@@ -416,7 +416,7 @@ export default function MyRunsScreen({ onProfilePress, userProfile }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Floc</Text>
+          <Image source={require('../assets/floc-logo-transparent.png')} style={styles.headerLogo} />
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity 
@@ -603,6 +603,11 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: -1,
     color: '#1A0F0A',
+  },
+  headerLogo: {
+    width: 72,
+    height: 35,
+    resizeMode: 'contain',
   },
   tabContainer: {
     flexDirection: 'row',

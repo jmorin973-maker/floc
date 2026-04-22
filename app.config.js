@@ -12,14 +12,9 @@ export default {
       resizeMode: "contain",
       backgroundColor: "#1A0F0A"
     },
-    plugins: [
-      ...
-      'expo-splash-screen',
-    ],
     ios: {
       supportsTablet: false,
       bundleIdentifier: "com.julienmorin.floc",
-      buildNumber: "5",
       infoPlist: {
         NSLocationWhenInUseUsageDescription: "Floc uses your location to show nearby runs on the map."
       }
