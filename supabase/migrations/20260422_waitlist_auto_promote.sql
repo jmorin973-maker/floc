@@ -92,17 +92,14 @@ for each row execute function public.tg_run_participants_promote();
 -- promote now so existing data is reconciled.
 do $func$
 declare
-  r record;
+  run_row record;
 begin
-  for r in
-    select r.id as run_id
-    from public.runs r
-    where exists (
-      select 1 from public.run_participants rp
-      where rp.run_id = r.id and rp.status = 'waitlist'
-    )
+  for run_row in
+    select distinct rp.run_id
+    from public.run_participants rp
+    where rp.status = 'waitlist'
   loop
-    perform public.promote_waitlist_if_spot_open(r.run_id);
+    perform public.promote_waitlist_if_spot_open(run_row.run_id);
   end loop;
 end;
 $func$;
